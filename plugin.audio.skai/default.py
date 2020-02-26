@@ -56,9 +56,9 @@ def INDEX(url):
 	  response.close()
 	  link=normalize_link(link)
 	  block=re.compile('<section class="mb-5">(.+?)pagination').findall(link)
-	  match=re.compile('<a href="(.+?)">(.+?)src="(.+?)" alt="(.+?)"(.+?)<span class="d-block">').findall(block[0])
-	  for ep_url, buffer1, ep_image, ep_title, buffer2 in match:
-	    addDir(ep_title,BaseURL+ep_url,1,ep_image.split('?')[0])
+	  match=re.compile('<a href="(.+?)">(.+?)src="(.+?)" alt="(.+?)font-weight-normal">(.+?)</h3>(.+?)<span class="d-block">').findall(block[0])
+	  for ep_url, buffer1, ep_image, buffer2, ep_title, buffer3 in match:
+	    addDir(ep_title.replace(' &#039;','\''),BaseURL+ep_url,1,ep_image.split('?')[0])
 	addSetting(__language__(50001),'plugin://plugin.audio.skai',10,os.path.join(__settings__.getAddonInfo('path'),'resources','images','settings.png'))
 
 
@@ -86,7 +86,7 @@ def INDEX1(url,name):
 	  ep_date=ep_date[1].strip()
 	  ep_url=ep_audio_url1+ep_date.split('/')[2]+ep_date.split('/')[1]+ep_date.split('/')[0]+ep_audio_url2
 	  #print 'SKAI RADIO ep_title='+name.encode('utf-8')+' ep_date='+ep_date+' ep_url='+ep_url
-	  addLink(name.encode('utf-8')+' - '+ep_date.split('/')[2]+'/'+ep_date.split('/')[1]+'/'+ep_date.split('/')[0],ep_url,ep_image.split('?')[0])
+	  addLink(str(name)+' - '+ep_date.split('/')[2]+'/'+ep_date.split('/')[1]+'/'+ep_date.split('/')[0],ep_url,ep_image.split('?')[0])
 	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
 	  addSetting('<< [ Back ]','plugin://plugin.audio.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
@@ -116,7 +116,7 @@ def addLink(name,url,iconimage):
         liz=xbmcgui.ListItem(name, iconImage="DefaultAudio.png", thumbnailImage=iconimage)
         liz.setInfo( type="Audio", infoLabels={ "Title": name } )
         liz.setProperty( "Fanart_Image", fanart )
-        liz.setProperty( "IsPlayable". "true" )
+        liz.setProperty( "IsPlayable", "true" )
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 

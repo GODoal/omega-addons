@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.skai" name="SKAI TV" version="1.2.6" provider-name="Omega">
+  <requires>
+        <import addon="xbmc.python" version="2.1.0"/>
+        <import addon="plugin.video.youtube" version="2.9.2"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <summary lang="en">SKAI TV</summary>
+    <description lang="en">SKAI TV (Greek News Channel)</description>
+    <disclaimer>Some parts of this addon may not be legal in your country of
+    residence. Please check with your local laws before installing.</disclaimer>
+    <source>https://github.com/GODoal/omega-addons/plugin.video.skai</source>
+  </extension>
+</addon>

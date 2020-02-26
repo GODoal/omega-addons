@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="repository.omega" name="OMEGA Add-on repository" version="1.0.0" provider-name="Omega">
+    <extension point="xbmc.addon.repository" name="OMEGA Add-on repository">
+        <info compressed="false">https://raw.githubusercontent.com/GODoal/omega-repo/master/addons.xml</info>
+        <checksum>https://raw.githubusercontent.com/GODoal/omega-repo/master/addons.xml.md5</checksum>
+        <datadir zip="true">https://raw.githubusercontent.com/GODoal/omega-repo/master</datadir>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Install Add-ons from Omega</summary>
+        <description lang="en">Download and install add-ons from the Omega repository.</description>
+        <platform>all</platform>
+    </extension>
+</addon>

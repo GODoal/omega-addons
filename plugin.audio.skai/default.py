@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.0.1 (25/02/2020)
+# Version 1.0.2 (03/03/2020)
 # SKAI RADIO
 # Greek News Channel XBMC addon
 # By GODoal
@@ -39,7 +39,6 @@ BaseURL='http://www.skairadio.gr'
 timeout = int(__settings__.getSetting("socket_timeout"))
 socket.setdefaulttimeout(timeout)
 
-
 #Index Menu
 def INDEX(url):
 	addLink("Live Stream","http://liveradio.skai.gr/skaihd/skai/playlist.m3u8",os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
@@ -61,8 +60,7 @@ def INDEX(url):
 	    addDir(ep_title.replace(' &#039;','\''),BaseURL+ep_url,1,ep_image.split('?')[0])
 	addSetting(__language__(50001),'plugin://plugin.audio.skai',10,os.path.join(__settings__.getAddonInfo('path'),'resources','images','settings.png'))
 
-
-# Specific Show List
+# Show List
 def INDEX1(url,name):
 	req=urllib2.Request(url)
 	req.add_header('Accept', '*/*')
@@ -76,20 +74,49 @@ def INDEX1(url,name):
 	link=normalize_link(link)
 	bblock=re.compile('configuration(.+?)}],').findall(link)
 	ep_image=bblock[0].split('\'')[1]
-	ep_audio_url1=bblock[0].split('\'')[5][:-12]
-	ep_audio_url2=bblock[0].split('\'')[5][-4:]
-	#print 'SKAI RADIO ep_title='+name+' ep_image='+ep_image+' ep_audio_url1='+ep_audio_url1+' ep_audio_url2='+ep_audio_url2
+	ep_audio_base=bblock[0].split('\'')[5].strip()
+	ep_cur=''
+	if ep_audio_base[-5:-4].isalpha():
+	  ep_audio_url1=ep_audio_base[:-13]
+	  ep_cur=ep_audio_base[-5:-4]
+	else:
+	  ep_audio_url1=ep_audio_base[:-12]
+	ep_audio_url2=ep_audio_base[-4:]
+	#print 'SKAI RADIO ep_title='+name+' ep_image='+ep_image+' ep_audio_url1='+ep_audio_url1+' ep_audio_url2='+ep_audio_url2+' alpha char='+ep_audio_base[-5:-4]
 	block=re.compile('episode_list_dropdown">(.+?)</select>').findall(link)
-	armatch=block[0].split('</option>')
-	for i in range(len(armatch)-1):
-	  ep_date=armatch[i].split('>')
-	  ep_date=ep_date[1].strip()
-	  ep_url=ep_audio_url1+ep_date.split('/')[2]+ep_date.split('/')[1]+ep_date.split('/')[0]+ep_audio_url2
-	  #print 'SKAI RADIO ep_title='+name.encode('utf-8')+' ep_date='+ep_date+' ep_url='+ep_url
-	  addLink(str(name)+' - '+ep_date.split('/')[2]+'/'+ep_date.split('/')[1]+'/'+ep_date.split('/')[0],ep_url,ep_image.split('?')[0])
+	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"lazylist") == "true":
+	  armatch=block[0].split('</option>')
+	  for i in range(len(armatch)-1):
+	    ep_date=armatch[i].split('>')
+	    ep_date=ep_date[1].strip()
+	    ep_url=ep_audio_url1+ep_date.split('/')[2]+ep_date.split('/')[1]+ep_date.split('/')[0]+ep_audio_url2
+	    #print 'SKAI RADIO ep_title='+name+' ep_date='+ep_date+' ep_url='+ep_url
+	    addLink(name+' - '+ep_date.split('/')[2]+'/'+ep_date.split('/')[1]+'/'+ep_date.split('/')[0],ep_url,ep_image.split('?')[0])
+	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"lazylist") == "false":
+	  episodes=re.compile('data-url(.+?)"(.+?)"(.+?)>(.+?)</option>').findall(block[0])
+	  for buffer1, ep_url, buffer2, ep_date in episodes:
+	    addDir(name+' - '+ep_date.strip(),BaseURL+ep_url,2,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
 	  addSetting('<< [ Back ]','plugin://plugin.audio.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
+# Non-Lazy Show List
+def INDEX2(url,name):
+	req=urllib2.Request(url)
+	req.add_header('Accept', '*/*')
+	req.add_header('Connection', 'keep-alive')
+	req.add_header('Referer', url)
+	req.add_header('Connection', 'keep-alive')
+	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
+	response = urllib2.urlopen(req)
+	link=response.read()
+	response.close()
+	link=normalize_link(link)
+	block=re.compile('configuration(.+?)}],').findall(link)
+	ep_image=block[0].split('\'')[1]
+	ep_audio=block[0].split('\'')[5].strip()
+	addLink(name,ep_audio,ep_image.split('?')[0])
+	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
+	  addSetting('<< [ Back ]','plugin://plugin.audio.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 def get_params():
         param=[]
@@ -197,6 +224,8 @@ if mode==None or url==None or len(url)<1:
         INDEX(url)
 elif mode==1:
 	INDEX1(url,name)
+elif mode==2:
+	INDEX2(url,name)
 elif mode==10:
 	LoadSettings()
 elif mode==11:

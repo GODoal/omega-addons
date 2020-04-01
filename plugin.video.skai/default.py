@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.2.6 (25/02/2020)
+# Version 1.2.7 (01/04/2020)
 # SKAI TV
 # Greek News Channel XBMC addon
 # By GODoal
@@ -83,10 +83,11 @@ def INDEX1(url):
 	main_json = json.loads('{'+match[0]+'}')
 	if link.count('"livestream":"') > 0:
 	  ep_name=main_json['now']['title'].encode('utf-8')
-	  addLink(ep_name,str(main_json['now']['livestream'].encode('utf-8')).replace('\\',''),os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
-	elif link.count('watch?v=') > 0:
-	  sYTid=link.split('watch?v=')[1].split('"')[0]
-	  addYTLink("LiveStream",url,sYTid,30,os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
+	  if str(main_json['now']['livestream'].encode('utf-8')).replace('\\','').count('watch?v=') > 0: 
+	    sYTid=link.split('watch?v=')[1].split('"')[0]
+	    addYTLink(ep_name,url,sYTid,30,os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
+	  else:
+	    addLink(ep_name,str(main_json['now']['livestream'].encode('utf-8')).replace('\\',''),os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
 	else:
 	  print 'ERROR :: SKAI TV - Could not process LIVE stream URL:'+url
 	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":

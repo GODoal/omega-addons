@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.2.7 (01/04/2020)
+# Version 1.2.8 (11/04/2021)
 # SKAI TV
 # Greek News Channel XBMC addon
 # By GODoal
@@ -175,7 +175,8 @@ def VIDEOLINKS(url,name,switch):
 	      ep_name=ep_title
 	    else:
 	      ep_name=main_json['episode'][x]['media_item_title'].encode('utf-8')+' - '+ep_date2
-	    addLink(ep_name,str('http://videostream.skai.gr/'+main_json['episode'][x]['media_item_file'].encode('utf-8')).replace('\\','')+'.m3u8','http:'+main_json['episode'][x]['img'].encode('utf-8'))
+	    #addLink(ep_name,str('http://videostream.skai.gr/'+main_json['episode'][x]['media_item_file'].encode('utf-8')).replace('\\','')+'.m3u8','http:'+main_json['episode'][x]['img'].encode('utf-8'))
+	    addLink(ep_name,str('https://videostream.skai.gr/skaivod/_definst_/mp4:skai/'+main_json['episode'][x]['media_item_file'].encode('utf-8')).replace('\\','')+'/chunklist.m3u8','http:'+main_json['episode'][x]['img'].encode('utf-8'))
 	if switch == 'main':
 	  matchrest=re.compile('btncustom(.+?)">(.+?)</a>').findall(link)
 	  if matchrest[0][1]:

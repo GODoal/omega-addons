@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.2.8 (11/04/2021)
+# Version 1.2.9 (21/05/2024)
 # SKAI TV
 # Greek News Channel XBMC addon
 # By GODoal
@@ -33,7 +33,7 @@ import json
 __settings__ = xbmcaddon.Addon(id='plugin.video.skai')
 __language__ = __settings__.getLocalizedString
 fanart = os.path.join(__settings__.getAddonInfo('path'),'fanart.jpg')
-BaseURL='http://www.skaitv.gr'
+BaseURL='http://www.skai.gr'
 
 #Load user settings
 timeout = int(__settings__.getSetting("socket_timeout"))
@@ -42,7 +42,7 @@ socket.setdefaulttimeout(timeout)
 
 #Index Menu
 def INDEX(url):
-	req=urllib2.Request(BaseURL)
+	req=urllib2.Request(BaseURL+'/tv')
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
 	response = urllib2.urlopen(req)
 	link=response.read()
@@ -72,7 +72,7 @@ def INDEX1(url):
 	req.add_header('Accept', '*/*')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('Referer', url)
-	req.add_header('Origin', 'https://www.skaitv.gr')
+	req.add_header('Origin', 'https://www.skai.gr/tv')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
 	response = urllib2.urlopen(req)
@@ -100,7 +100,7 @@ def INDEX2(url):
 	req.add_header('Accept', '*/*')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('Referer', url)
-	req.add_header('Origin', 'https://www.skaitv.gr')
+	req.add_header('Origin', 'https://www.skai.gr/tv')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
 	response = urllib2.urlopen(req)
@@ -108,10 +108,10 @@ def INDEX2(url):
 	response.close()
 	link=normalize_link(link)
 	menu_block=re.compile('<h1 class=(.+?)<div class="catel">').findall(link)
-	cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/episode(.+?)"><span').findall(menu_block[0])
+	cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/tv/episode(.+?)"><span').findall(menu_block[0])
 	for epimage, name1, buffer1, urlpath in cat_list:
-	  addDirSwitch(name1.strip(),BaseURL+'/episode'+urlpath.strip(),'main',20,epimage)
-	  #print 'SKAI TV - addDir Name='+name1.strip()+' URL='+BaseURL+'/episode'+urlpath.strip()+' IMG='+epimage
+	  addDirSwitch(name1.strip(),BaseURL+'/tv/episode'+urlpath.strip(),'main',20,epimage)
+	  #print 'SKAI TV - addDir Name='+name1.strip()+' URL='+BaseURL+'/tv/episode'+urlpath.strip()+' IMG='+epimage
 	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
 	  addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
@@ -122,7 +122,7 @@ def INDEX3(url):
 	req.add_header('Accept', '*/*')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('Referer', url)
-	req.add_header('Origin', 'https://www.skaitv.gr')
+	req.add_header('Origin', 'https://www.skai.gr/tv')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
 	response = urllib2.urlopen(req)
@@ -130,10 +130,10 @@ def INDEX3(url):
 	response.close()
 	link=normalize_link(link)
 	menu_block=re.compile('<h1 class=(.+?)<div class="catel">').findall(link)
-	cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/show(.+?)"(.+?)class="col-3 last-epi"').findall(menu_block[0])
+	cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/tv/show(.+?)"(.+?)class="col-3 last-epi"').findall(menu_block[0])
 	for epimage, name1, buffer1, urlpath, buffer2 in cat_list:
 	  # For each url run another query and parse the URL to the latest episode
-	  req=urllib2.Request(BaseURL+'/show'+urlpath.strip())
+	  req=urllib2.Request(BaseURL+'/tv/show'+urlpath.strip())
 	  req.add_header('Accept', '*/*')
 	  req.add_header('Referer', url)
 	  req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
@@ -147,13 +147,14 @@ def INDEX3(url):
 	    ep_title=match[0][3].strip().replace('<br/>',' ').replace('\n','').replace('\r','')
 	    ep_url=match[0][1]
 	    ep_image=match[0][5]
-	    #print 'SKAI TV - INDEX3 match = '+ep_url+' '+ep_title+' '+ep_image
+	    print 'SKAI TV - INDEX3 match = '+ep_url+' '+ep_title+' '+ep_image
 	    addDirSwitch(ep_title,BaseURL+ep_url,'main',20,ep_image)
 	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
 	  addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 
 def VIDEOLINKS(url,name,switch):
+	#print 'VIDEOLINKS URL='+str(url)
 	req=urllib2.Request(url)
 	req.add_header('Accept', '*/*')
 	req.add_header('Referer', url)

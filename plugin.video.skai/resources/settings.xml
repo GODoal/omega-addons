@@ -1,4 +1,0 @@
-<settings>
-   <setting id="socket_timeout" label="60001" type="number" default="15"/>
-   <setting id="goback" label="60005" type="bool" default="true"/>
-</settings>

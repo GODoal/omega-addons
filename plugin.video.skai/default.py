@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.2.9 (21/05/2024)
+# Version 1.3.0 (26/09/2024)
 # SKAI TV
 # Greek News Channel XBMC addon
 # By GODoal
@@ -21,30 +21,30 @@
 import os
 import sys
 import xbmc
-import urllib
-import urllib2
+import urllib.request
 import re
 import xbmcplugin
 import xbmcgui
 import xbmcaddon
 import socket
-import HTMLParser
+from html.parser import HTMLParser
 import json
+
+
 __settings__ = xbmcaddon.Addon(id='plugin.video.skai')
 __language__ = __settings__.getLocalizedString
 fanart = os.path.join(__settings__.getAddonInfo('path'),'fanart.jpg')
 BaseURL='http://www.skai.gr'
 
-#Load user settings
-timeout = int(__settings__.getSetting("socket_timeout"))
-socket.setdefaulttimeout(timeout)
+#Set default timeout settings
+socket.setdefaulttimeout(15)
 
 
 #Index Menu
 def INDEX(url):
-	req=urllib2.Request(BaseURL+'/tv')
+	req=urllib.request.Request(BaseURL+'/tv')
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
-	response = urllib2.urlopen(req)
+	response = urllib.request.urlopen(req)
 	link=response.read()
 	response.close()
 	link=normalize_link(link)
@@ -62,20 +62,19 @@ def INDEX(url):
 	    addDir(name1.strip(),BaseURL+urlext.strip(),3,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 	  else:
 	    if urlext.strip() not in ['/', '/programma']:
-	      print 'ERROR :: SKAITV - Could not process URL:'+BaseURL+urlext.strip()
-	addSetting(__language__(50001),'plugin://plugin.video.skai',10,os.path.join(__settings__.getAddonInfo('path'),'resources','images','settings.png'))
+	      print( 'ERROR :: SKAITV - Could not process URL:'+BaseURL+urlext.strip())
 
 
 #LIVE
 def INDEX1(url):
-	req=urllib2.Request(url)
+	req=urllib.request.Request(url)
 	req.add_header('Accept', '*/*')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('Referer', url)
 	req.add_header('Origin', 'https://www.skai.gr/tv')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
-	response = urllib2.urlopen(req)
+	response = urllib.request.urlopen(req)
 	link=response.read()
 	link=normalize_link(link)
 	response.close()
@@ -87,45 +86,42 @@ def INDEX1(url):
 	    sYTid=link.split('watch?v=')[1].split('"')[0]
 	    addYTLink(ep_name,url,sYTid,30,os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
 	  else:
-	    addLink(ep_name,str(main_json['now']['livestream'].encode('utf-8')).replace('\\',''),os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
+	    addLink(ep_name,(str(main_json['now']['livestream']).replace('\\','')).encode('UTF-8'),os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
 	else:
-	  print 'ERROR :: SKAI TV - Could not process LIVE stream URL:'+url
-	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
-	  addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	  print('ERROR :: SKAI TV - Could not process LIVE stream URL:'+url)
+	addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 
 #CATEGORY LISTINGS
 def INDEX2(url):
-	req=urllib2.Request(url)
+	req=urllib.request.Request(url)
 	req.add_header('Accept', '*/*')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('Referer', url)
 	req.add_header('Origin', 'https://www.skai.gr/tv')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
-	response = urllib2.urlopen(req)
+	response = urllib.request.urlopen(req)
 	link=response.read()
 	response.close()
 	link=normalize_link(link)
-	menu_block=re.compile('<h1 class=(.+?)<div class="catel">').findall(link)
+	menu_block=re.compile('<h1 class="h2"(.+?)<footer class="page-footer').findall(link)
 	cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/tv/episode(.+?)"><span').findall(menu_block[0])
 	for epimage, name1, buffer1, urlpath in cat_list:
 	  addDirSwitch(name1.strip(),BaseURL+'/tv/episode'+urlpath.strip(),'main',20,epimage)
-	  #print 'SKAI TV - addDir Name='+name1.strip()+' URL='+BaseURL+'/tv/episode'+urlpath.strip()+' IMG='+epimage
-	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
-	  addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 
 #SKAI Seires
 def INDEX3(url):
-	req=urllib2.Request(url)
+	req=urllib.request.Request(url)
 	req.add_header('Accept', '*/*')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('Referer', url)
 	req.add_header('Origin', 'https://www.skai.gr/tv')
 	req.add_header('Connection', 'keep-alive')
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
-	response = urllib2.urlopen(req)
+	response = urllib.request.urlopen(req)
 	link=response.read()
 	response.close()
 	link=normalize_link(link)
@@ -133,12 +129,12 @@ def INDEX3(url):
 	cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/tv/show(.+?)"(.+?)class="col-3 last-epi"').findall(menu_block[0])
 	for epimage, name1, buffer1, urlpath, buffer2 in cat_list:
 	  # For each url run another query and parse the URL to the latest episode
-	  req=urllib2.Request(BaseURL+'/tv/show'+urlpath.strip())
+	  req=urllib.request.Request(BaseURL+'/tv/show'+urlpath.strip())
 	  req.add_header('Accept', '*/*')
 	  req.add_header('Referer', url)
 	  req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
-	  req.add_header('X-Requested-With', 'XMLHttpRequest')
-	  response = urllib2.urlopen(req)
+	  req.add_header('X-Requested-With', 'XMLHttpurllib.request.Request')
+	  response = urllib.request.urlopen(req)
 	  link=response.read()
 	  response.close()
 	  link=normalize_link(link)
@@ -147,52 +143,51 @@ def INDEX3(url):
 	    ep_title=match[0][3].strip().replace('<br/>',' ').replace('\n','').replace('\r','')
 	    ep_url=match[0][1]
 	    ep_image=match[0][5]
-	    print 'SKAI TV - INDEX3 match = '+ep_url+' '+ep_title+' '+ep_image
+	    #print('SKAI TV - INDEX3 match = '+ep_url+' '+ep_title+' '+ep_image)
 	    addDirSwitch(ep_title,BaseURL+ep_url,'main',20,ep_image)
-	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
-	  addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	addSetting('<< [ Back ]',('plugin://plugin.video.skai/').encode('UTF-8'),11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 
 def VIDEOLINKS(url,name,switch):
 	#print 'VIDEOLINKS URL='+str(url)
-	req=urllib2.Request(url)
+	req=urllib.request.Request(url)
 	req.add_header('Accept', '*/*')
 	req.add_header('Referer', url)
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
-	req.add_header('X-Requested-With', 'XMLHttpRequest')
-	response = urllib2.urlopen(req)
+	req.add_header('X-Requested-With', 'XMLHttpurllib.request.Request')
+	response = urllib.request.urlopen(req)
 	link=response.read()
+	link=normalize_link(link)
 	response.close()
 	match=re.compile('var data = {(.+?)};').findall(link)
 	main_json = json.loads('{'+match[0]+'}')
 	for x in range(len(main_json['episode'])):
 	  if 'media_item_title' in main_json['episode'][x]:
 	    #If the title contains the air date then display it as is
-	    ep_title=main_json['episode'][x]['media_item_title'].encode('utf-8')
-	    ep_date=main_json['episode'][x]['start'].encode('utf-8').split(' ')[0].replace('"','')
-	    ep_date1=ep_date.replace('-','/')
-	    ep_date2=ep_date.split('-')[2]+'/'+ep_date.split('-')[1]+'/'+ep_date.split('-')[0]
+	    ep_title=main_json['episode'][x]['media_item_title']
+	    ep_date=main_json['episode'][x]['start'].split(' ')[0].replace('"','')
+	    ep_date1=(ep_date.replace('-','/'))
+	    ep_date2=(ep_date.split('-')[2]+'/'+ep_date.split('-')[1]+'/'+ep_date.split('-')[0])
 	    if ep_title.count(ep_date1) > 0 or ep_title.count(ep_date2) > 0:
 	      ep_name=ep_title
 	    else:
-	      ep_name=main_json['episode'][x]['media_item_title'].encode('utf-8')+' - '+ep_date2
+	      ep_name=main_json['episode'][x]['media_item_title']+' - '+ep_date2
 	    #addLink(ep_name,str('http://videostream.skai.gr/'+main_json['episode'][x]['media_item_file'].encode('utf-8')).replace('\\','')+'.m3u8','http:'+main_json['episode'][x]['img'].encode('utf-8'))
-	    addLink(ep_name,str('https://videostream.skai.gr/skaivod/_definst_/mp4:skai/'+main_json['episode'][x]['media_item_file'].encode('utf-8')).replace('\\','')+'/chunklist.m3u8','http:'+main_json['episode'][x]['img'].encode('utf-8'))
+	    addLink(ep_name,str('https://videostream.skai.gr/skaivod/_definst_/mp4:skai/'+main_json['episode'][x]['media_item_file']).replace('\\','')+'/chunklist.m3u8','http:'+main_json['episode'][x]['img'])
 	if switch == 'main':
 	  matchrest=re.compile('btncustom(.+?)">(.+?)</a>').findall(link)
 	  if matchrest[0][1]:
 	    addDir(matchrest[0][1],url,21,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
-	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
-	  addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	addSetting('<< [ Back ]',('plugin://plugin.video.skai/').encode('UTF-8'),11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 
 def VIDEOINDEX(url,name):
-	req=urllib2.Request(url)
+	req=urllib.request.Request(url)
 	req.add_header('Accept', '*/*')
 	req.add_header('Referer', url)
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
 	req.add_header('X-Requested-With', 'XMLHttpRequest')
-	response = urllib2.urlopen(req)
+	response = urllib.request.urlopen(req)
 	link=response.read()
 	response.close()
 	match=re.compile('var data = {(.+?)};').findall(link)
@@ -207,8 +202,7 @@ def VIDEOINDEX(url,name):
 	      addDirSwitch(ep_title,str(BaseURL+main_json['episodes'][x]['link'].encode('utf-8')).replace('\\',''),'rest',20,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 	    else:
 	      addDirSwitch(ep_title+' - '+ep_date2,str(BaseURL+main_json['episodes'][x]['link'].encode('utf-8')).replace('\\',''),'rest',20,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
-	if xbmcplugin.getSetting(int( sys.argv[ 1 ] ),"goback") == "true":
-	  addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	addSetting('<< [ Back ]',('plugin://plugin.video.skai/').encode('UTF-8'),11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 
 def VIDEOLINKSYT(ytid):
@@ -239,19 +233,22 @@ def addLink(name,url,iconimage):
         icoimg = os.path.join(__settings__.getAddonInfo('path'),iconimage)
         if icoimg.count('http:') > 0:
                 icoimg=iconimage
-        liz=xbmcgui.ListItem(name, iconImage="DefaultVideo.png", thumbnailImage=iconimage)
-        liz.setInfo( type="Video", infoLabels={ "Title": name } )
-        liz.setProperty( "Fanart_Image", fanart )
+        liz = xbmcgui.ListItem(name)
+        liz.setArt({'icon':icoimg, 'fanart': fanart})
+        vinfo = liz.getVideoInfoTag()
+        vinfo.setTitle(name)
+        vinfo.setMediaType('video')
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz)
         return ok
 
 def addYTLink(name,url,ytid,mode,iconimage):
-        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&ytid="+str(ytid)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+        u=sys.argv[0]+"?url="+urllib.parse.quote_plus(url)+"&ytid="+str(ytid)+"&mode="+str(mode)+"&name="+urllib.parse.quote_plus(name)
         ok=True
         icoimg = os.path.join(__settings__.getAddonInfo('path'),iconimage)
         if icoimg.count('http:') > 0:
                 icoimg=iconimage
-        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
+        liz = xbmcgui.ListItem(name)
+        liz.setArt({'icon':icoimg, 'fanart': fanart})
         liz.setInfo( type="Video", infoLabels={ "Title": name } )
         liz.setProperty("IsPlayable","true")
         liz.setProperty( "Fanart_Image", fanart )
@@ -259,43 +256,51 @@ def addYTLink(name,url,ytid,mode,iconimage):
         return ok
 
 def addDir(name,url,mode,iconimage):
-        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+        u=sys.argv[0]+"?url="+urllib.parse.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.parse.quote_plus(name)
         ok=True
         icoimg = os.path.join(__settings__.getAddonInfo('path'),iconimage)
         if icoimg.count('http:') > 0:
                 icoimg=iconimage
-        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=icoimg)
-        liz.setInfo( type="Video", infoLabels={ "Title": name } )
-        liz.setProperty( "Fanart_Image", fanart )
+        liz = xbmcgui.ListItem(name)
+        liz.setArt({'icon':icoimg, 'fanart': fanart})
+        vinfo = liz.getVideoInfoTag()
+        vinfo.setTitle(name)
+        vinfo.setPath(u)
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
         return ok
 
 def addDirSwitch(name,url,switch,mode,iconimage):
-        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&switch="+urllib.quote_plus(switch)
+        u=sys.argv[0]+"?url="+urllib.parse.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.parse.quote_plus(name)+"&switch="+urllib.parse.quote_plus(switch)
         ok=True
         icoimg = os.path.join(__settings__.getAddonInfo('path'),iconimage)
         if icoimg.count('http:') > 0:
                 icoimg=iconimage
-        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=icoimg)
-        liz.setInfo( type="Video", infoLabels={ "Title": name } )
-        liz.setProperty( "Fanart_Image", fanart )
+        liz = xbmcgui.ListItem(name)
+        liz.setArt({'icon':icoimg, 'fanart': fanart})
+        vinfo = liz.getVideoInfoTag()
+        vinfo.setTitle(name)
+        vinfo.setPath(u)
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
         return ok
 
 def addSetting(name,url,mode,iconimage):
-        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+        u=sys.argv[0]+"?url="+urllib.parse.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.parse.quote_plus(name)
         ok=True
         icoimg = os.path.join(__settings__.getAddonInfo('path'),iconimage)
         if icoimg.count('http:') > 0:
                 icoimg=iconimage
-        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=icoimg)
-        liz.setInfo( type="Video", infoLabels={ "Title": name } )
-        liz.setProperty( "Fanart_Image", fanart )
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=False)
-        return ok 
+        liz = xbmcgui.ListItem(name)
+        liz.setArt({'icon':icoimg, 'fanart': fanart})
+        vinfo = liz.getVideoInfoTag()
+        vinfo.setTitle(name)
+        vinfo.setMediaType('video')
+        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz)
+        return ok
+
 
 def normalize_link(link):
-        match=re.compile('charset=(.+?)"').findall(link)
+        decoded = link.decode('utf-8')
+        match=re.compile('charset=(.+?)"').findall(decoded)
         if not match:
                 link=link.replace('\t','').replace('\r\n','').replace('\n','')
                 return link
@@ -303,16 +308,12 @@ def normalize_link(link):
                 link=link.replace('\t','').replace('\r\n','').replace('\n','')
                 return link
         else:
-                link=link.replace('\t','').replace('\r\n','').replace('\n','').decode(match[0]).encode('utf-8')
-                return link
+                link=decoded.replace('\t','').replace('\r\n','').replace('\n','').encode('utf-8')
+                return link.decode('UTF-8')
 
-def LoadSettings():
-        __settings__.openSettings(sys.argv[ 0 ])
-        timeout = int(__settings__.getSetting("socket_timeout"))
-        socket.setdefaulttimeout(timeout)
 
 def PageBack():
-        xbmc.executebuiltin( "XBMC.Action(Back)" )
+        xbmc.executebuiltin("Action(Back)")
 
 params=get_params()
 url=None
@@ -322,11 +323,11 @@ ytid=None
 switch=None
 
 try:
-        url=urllib.unquote_plus(params["url"])
+        url=urllib.parse.unquote_plus(params["url"])
 except:
         pass
 try:
-        name=urllib.unquote_plus(params["name"])
+        name=urllib.parse.unquote_plus(params["name"])
 except:
         pass
 try:
@@ -334,11 +335,11 @@ try:
 except:
         pass
 try:
-        ytid=urllib.unquote_plus(params["ytid"])
+        ytid=urllib.parse.unquote_plus(params["ytid"])
 except:
         pass
 try:
-        switch=urllib.unquote_plus(params["switch"])
+        switch=urllib.parse.unquote_plus(params["switch"])
 except:
         pass
 

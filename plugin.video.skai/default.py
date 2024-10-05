@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.3.0 (26/09/2024)
+# Version 1.3.1 (05/10/2024)
 # SKAI TV
 # Greek News Channel XBMC addon
 # By GODoal

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.1.0 (04/10/2024)
+# Version 1.1.1 (05/10/2024)
 # SKAI RADIO
 # Greek News Channel XBMC addon
 # By GODoal

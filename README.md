@@ -1,4 +1,4 @@
 OMEGA Kodi Add-ons
 ==================
 
-Source code of the Omega repository addons
+Source code of the Omega repository and addons

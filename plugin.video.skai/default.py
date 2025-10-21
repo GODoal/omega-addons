@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.3.1 (05/10/2024)
+# Version 1.3.2 (21/10/2025)
 # SKAI TV
 # Greek News Channel XBMC addon
 # By GODoal
@@ -48,18 +48,22 @@ def INDEX(url):
 	link=response.read()
 	response.close()
 	link=normalize_link(link)
-	menu_block=re.compile('"menulist"(.+?)</div>').findall(link)
-	cat_list=re.compile('<a href="(.+?)">(.+?)</a>').findall(menu_block[0])
-	for urlext, name1 in cat_list:
+	menu_block=re.compile('<ul class="nav-list primary-nav">(.+?)</ul>').findall(link)
+	cat_list=re.compile('<a href="(.+?)"(.+?)"nav-label">(.+?)</span>').findall(menu_block[0])
+	for urlext, buffer1, name1 in cat_list:
 	  # Filter out root page
 	  if urlext.count('live') >0:
 	    addDir(name1.strip(),BaseURL+urlext.strip(),1,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 	  elif urlext.count('enimerosi') >0:
-	    addDir(name1.strip(),BaseURL+urlext.strip(),2,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	    addDir(name1.strip(),urlext.strip(),2,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	  elif urlext.count('ntokimanter') >0:
+	    addDir(name1.strip(),urlext.strip(),3,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 	  elif urlext.count('seires') >0:
-	    addDir(name1.strip(),BaseURL+urlext.strip(),3,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	    addDir(name1.strip(),urlext.strip(),3,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 	  elif urlext.count('psuchagogia') >0:
-	    addDir(name1.strip(),BaseURL+urlext.strip(),3,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	    addDir(name1.strip(),urlext.strip(),3,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	  elif urlext.count('athlitika') >0:
+	    addDir(name1.strip(),urlext.strip(),3,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 	  else:
 	    if urlext.strip() not in ['/', '/programma']:
 	      print( 'ERROR :: SKAITV - Could not process URL:'+BaseURL+urlext.strip())
@@ -85,8 +89,10 @@ def INDEX1(url):
 	  if str(main_json['now']['livestream'].encode('utf-8')).replace('\\','').count('watch?v=') > 0: 
 	    sYTid=link.split('watch?v=')[1].split('"')[0]
 	    addYTLink(ep_name,url,sYTid,30,os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
+#	    print('DEBUG INDEX1 URL_IF='+url)
 	  else:
 	    addLink(ep_name,(str(main_json['now']['livestream']).replace('\\','')).encode('UTF-8'),os.path.join(__settings__.getAddonInfo('path'),'resources','images','latest.png'))
+#	    print('DEBUG INDEX1 URL_ELSE='+(str(main_json['now']['livestream']).replace('\\','')).encode('UTF-8'))
 	else:
 	  print('ERROR :: SKAI TV - Could not process LIVE stream URL:'+url)
 	addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
@@ -105,10 +111,11 @@ def INDEX2(url):
 	link=response.read()
 	response.close()
 	link=normalize_link(link)
-	menu_block=re.compile('<h1 class="h2"(.+?)<footer class="page-footer').findall(link)
-	cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/tv/episode(.+?)"><span').findall(menu_block[0])
+	menu_block=re.compile('<h1 class="h2"(.+?)<h2 class="h2"').findall(link)
+	cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/tv/show(.+?)">').findall(menu_block[0])
 	for epimage, name1, buffer1, urlpath in cat_list:
-	  addDirSwitch(name1.strip(),BaseURL+'/tv/episode'+urlpath.strip(),'main',20,epimage)
+	  addDirSwitch(name1.strip(),BaseURL+'/tv/show'+urlpath.strip(),'main',21,epimage)
+#	  print('DEBUG INDEX2 URL='+BaseURL+'/tv/show'+urlpath.strip()+'    INDEX2 NAME='+name1.strip())
 	addSetting('<< [ Back ]','plugin://plugin.video.skai/',11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 
@@ -125,31 +132,26 @@ def INDEX3(url):
 	link=response.read()
 	response.close()
 	link=normalize_link(link)
-	menu_block=re.compile('<h1 class=(.+?)<div class="catel">').findall(link)
+	if "athlitika" in str(url):
+	  menu_block=re.compile('<h1 class=(.+?)</main>').findall(link)
+	else:
+	  menu_block=re.compile('<h1 class=(.+?)<div class="catel">').findall(link)
 	cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/tv/show(.+?)"(.+?)class="col-3 last-epi"').findall(menu_block[0])
 	for epimage, name1, buffer1, urlpath, buffer2 in cat_list:
-	  # For each url run another query and parse the URL to the latest episode
-	  req=urllib.request.Request(BaseURL+'/tv/show'+urlpath.strip())
-	  req.add_header('Accept', '*/*')
-	  req.add_header('Referer', url)
-	  req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
-	  req.add_header('X-Requested-With', 'XMLHttpurllib.request.Request')
-	  response = urllib.request.urlopen(req)
-	  link=response.read()
-	  response.close()
-	  link=normalize_link(link)
-	  match=re.compile('pro all active(.+?)<a href="(.+?)"(.+?)title_r">(.+?)</h3>(.+?)src="(.+?)"').findall(link)
-	  if match:
-	    ep_title=match[0][3].strip().replace('<br/>',' ').replace('\n','').replace('\r','')
-	    ep_url=match[0][1]
-	    ep_image=match[0][5]
-	    #print('SKAI TV - INDEX3 match = '+ep_url+' '+ep_title+' '+ep_image)
-	    addDirSwitch(ep_title,BaseURL+ep_url,'main',20,ep_image)
+	  addDirSwitch(name1.strip(),BaseURL+'/tv/show'+urlpath.strip(),'main',21,epimage)
+	if ("psuchagogia" in str(url)) or ("seires" in str(url)) or ("ntokimanter" in str(url)):
+	  menu_block=re.compile('<h2 class=(.+?)</main>').findall(link)
+	  cat_list=re.compile('<img src="(.+?)" alt="(.+?)">(.+?)<a href="/tv/show(.+?)"(.+?)<span style="(.+?)"(.+?)</span></div>').findall(menu_block[0])
+	  for epimage, name1, buffer1, urlpath, buffer2, buffer3, name2 in cat_list:
+	    if ">" == name2:
+	      addDirSwitch('[Αρχείο] '+name1.strip(),BaseURL+'/tv/show'+urlpath.strip(),'main',21,epimage)
+	    else:
+	      addDirSwitch('[Αρχείο] '+name1.strip()+' - '+name2.replace('>',''),BaseURL+'/tv/show'+urlpath.strip(),'main',21,epimage)
 	addSetting('<< [ Back ]',('plugin://plugin.video.skai/').encode('UTF-8'),11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 
 def VIDEOLINKS(url,name,switch):
-	#print 'VIDEOLINKS URL='+str(url)
+#	print('DEBUG VIDEOLINKS URL='+str(url))
 	req=urllib.request.Request(url)
 	req.add_header('Accept', '*/*')
 	req.add_header('Referer', url)
@@ -174,6 +176,7 @@ def VIDEOLINKS(url,name,switch):
 	      ep_name=main_json['episode'][x]['media_item_title']+' - '+ep_date2
 	    #addLink(ep_name,str('http://videostream.skai.gr/'+main_json['episode'][x]['media_item_file'].encode('utf-8')).replace('\\','')+'.m3u8','http:'+main_json['episode'][x]['img'].encode('utf-8'))
 	    addLink(ep_name,str('https://videostream.skai.gr/skaivod/_definst_/mp4:skai/'+main_json['episode'][x]['media_item_file']).replace('\\','')+'/chunklist.m3u8','http:'+main_json['episode'][x]['img'])
+#	    print('DEBUG VIDEOLINKS NAME='+ep_name+'   VIDEOLINKS URL='+str('https://videostream.skai.gr/skaivod/_definst_/mp4:skai/'+main_json['episode'][x]['media_item_file']).replace('\\','')+'/chunklist.m3u8')
 	if switch == 'main':
 	  matchrest=re.compile('btncustom(.+?)">(.+?)</a>').findall(link)
 	  if matchrest[0][1]:
@@ -182,26 +185,48 @@ def VIDEOLINKS(url,name,switch):
 
 
 def VIDEOINDEX(url,name):
-	req=urllib.request.Request(url)
+#	print('DEBUG VIDEOINDEX URL='+str(url))
+	if "enimerosi" in str(url):
+	    req=urllib.request.Request(url)
+	    req.add_header('Accept', '*/*')
+	    req.add_header('Referer', url)
+	    req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
+	    req.add_header('X-Requested-With', 'XMLHttpRequest')
+	    response = urllib.request.urlopen(req)
+	    link=response.read()
+	    link=normalize_link(link)
+	    response.close()
+#	    print('DEBUG VIDEOINDEX LINK='+str(link))
+	    matchbase=re.compile('VIDEO</h2>(.+?)<a href="(.+?)" class="resio"').findall(link)
+#	    print('VIDEOINDEX MATCHBASE='+str(matchbase))
+	    for buffer1, urlext in matchbase:
+	      url2=BaseURL+urlext
+#	    print('DEBUG VIDEOINDEX URL2='+url2)
+	else:
+	    url2 = url
+	req=urllib.request.Request(url2)
 	req.add_header('Accept', '*/*')
 	req.add_header('Referer', url)
 	req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) XBMC Multimedia System')
 	req.add_header('X-Requested-With', 'XMLHttpRequest')
 	response = urllib.request.urlopen(req)
 	link=response.read()
+	link=normalize_link(link)
 	response.close()
 	match=re.compile('var data = {(.+?)};').findall(link)
 	main_json = json.loads('{'+match[0]+'}')
 	for x in range(len(main_json['episodes'])):
 	  if 'link' in main_json['episodes'][x]:
-	    ep_title=main_json['episodes'][x]['title'].encode('utf-8')
-	    ep_date=main_json['episodes'][x]['start'].encode('utf-8').split(' ')[0].replace('"','')
+	    ep_title=main_json['episodes'][x]['title']
+	    ep_date=main_json['episodes'][x]['start'].split(' ')[0].replace('"','')
 	    ep_date1=ep_date.replace('-','/')
 	    ep_date2=ep_date.split('-')[2]+'/'+ep_date.split('-')[1]+'/'+ep_date.split('-')[0]
 	    if ep_title.count(ep_date1) > 0 or ep_title.count(ep_date2) > 0:
-	      addDirSwitch(ep_title,str(BaseURL+main_json['episodes'][x]['link'].encode('utf-8')).replace('\\',''),'rest',20,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	      addDirSwitch(ep_title,str(BaseURL+'/tv'+main_json['episodes'][x]['link']).replace('\\',''),'rest',20,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+#	      print('DEBUG VIDEOINDEX URL_IF='+str(BaseURL+'/tv'+main_json['episodes'][x]['link']).replace('\\',''))
 	    else:
-	      addDirSwitch(ep_title+' - '+ep_date2,str(BaseURL+main_json['episodes'][x]['link'].encode('utf-8')).replace('\\',''),'rest',20,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+	      addDirSwitch(ep_title+' - '+ep_date2,str(BaseURL+'/tv'+main_json['episodes'][x]['link']).replace('\\',''),'rest',20,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
+#	      print('DEBUG VIDEOINDEX URL_ELSE='+str(BaseURL+'/tv'+main_json['episodes'][x]['link']).replace('\\',''))
 	addSetting('<< [ Back ]',('plugin://plugin.video.skai/').encode('UTF-8'),11,os.path.join(__settings__.getAddonInfo('path'),'resources','images','defFolder.png'))
 
 

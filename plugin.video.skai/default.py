@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.3.3 (17/12/2025)
+# Version 1.3.4 (17/12/2025)
 # SKAI TV
 # Greek News Channel XBMC addon
 # By GODoal
@@ -82,8 +82,8 @@ def INDEX1(url):
 	link=response.read()
 	link=normalize_link(link)
 	response.close()
-	match=re.compile('var data = {(.+?)};').findall(link)
-	main_json = json.loads('{'+match[0]+'}')
+	match=re.compile('var data = {"(.+?)};').findall(link)
+	main_json = json.loads('{"'+match[0]+'}')
 	if link.count('"livestream":"') > 0:
 	  ep_name=main_json['now']['title'].encode('utf-8')
 	  if str(main_json['now']['livestream'].encode('utf-8')).replace('\\','').count('watch?v=') > 0: 

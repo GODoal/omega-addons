@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Version 1.3.2 (21/10/2025)
+# Version 1.3.3 (17/12/2025)
 # SKAI TV
 # Greek News Channel XBMC addon
 # By GODoal
@@ -161,8 +161,8 @@ def VIDEOLINKS(url,name,switch):
 	link=response.read()
 	link=normalize_link(link)
 	response.close()
-	match=re.compile('var data = {(.+?)};').findall(link)
-	main_json = json.loads('{'+match[0]+'}')
+	match=re.compile('var data = {"(.+?)};').findall(link)
+	main_json = json.loads('{"'+match[0]+'}')
 	for x in range(len(main_json['episode'])):
 	  if 'media_item_title' in main_json['episode'][x]:
 	    #If the title contains the air date then display it as is
@@ -213,8 +213,8 @@ def VIDEOINDEX(url,name):
 	link=response.read()
 	link=normalize_link(link)
 	response.close()
-	match=re.compile('var data = {(.+?)};').findall(link)
-	main_json = json.loads('{'+match[0]+'}')
+	match=re.compile('var data = {"(.+?)};').findall(link)
+	main_json = json.loads('{"'+match[0]+'}')
 	for x in range(len(main_json['episodes'])):
 	  if 'link' in main_json['episodes'][x]:
 	    ep_title=main_json['episodes'][x]['title']
